@@ -1,6 +1,7 @@
 from typing import Dict, Any
 import json
 from chat_service import get_chat_response
+from db_service import get_cached_potion, cache_potion
 
 
 def get_ingredients_match_incantation(ingredients, incantation):
@@ -112,6 +113,12 @@ def get_potion_effect(ingredients: str, incantation: str, potion_name: str, ingr
 
 
 def create_potion(ingredients, incantation):
+    # First, check if we have this potion cached
+    cached_result = get_cached_potion(ingredients, incantation)
+    if cached_result:
+        return cached_result
+
+    # If not cached, generate the potion details
     ingredients_match_incantation = get_ingredients_match_incantation(
         ingredients, incantation)
     potion_name = get_potion_name(
@@ -128,6 +135,9 @@ def create_potion(ingredients, incantation):
         "potion_color": potion_color,
         "potion_effect": potion_effect
     }
+
+    # Cache the result for future use
+    cache_potion(potion_details)
 
     return potion_details
 
